@@ -184,6 +184,7 @@ local function tryRotate(direction)
   elseif direction == "left" or direction == "l" then
     turtle.turnLeft()
   end
+  return true
 end
 
 -- helper function to determine if a number (ideally a single coord position) will use some alternative action. returns boolean
@@ -196,7 +197,7 @@ local function mineVerticalSlice(length, tall)
   local currHeight = 1
   local currDepth = 1
   -- if the height that is being cleared is more than just one vertical layer
-  for z = 2, length do
+  for z = 1, length do
     if (tall > 1) then
       -- mine one column and move forward
       for y = 2, tall do
