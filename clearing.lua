@@ -139,7 +139,7 @@ end
 local function tryMove(movement)
   if turtle.getFuelLevel() then
     print("Refueling")
-    turtle.refuel(1)
+    turtle.refuel(2)
   end
   if movement == "forward" or movement == "f" then
     if turtle.detect() then
@@ -193,8 +193,8 @@ end
 
 -- assuming in the lowest rear block position
 local function mineVerticalSlice(length, tall)
-  currHeight = 1
-  currDepth = 1
+  local currHeight = 1
+  local currDepth = 1
   -- if the height that is being cleared is more than just one vertical layer
   for z = 2, length do
     if (tall > 1) then
