@@ -144,29 +144,29 @@ local function tryMove(movement)
   if movement == "forward" or movement == "f" then
     if turtle.detect() then
       if turtle.dig() then
-        print("dug a block")
+        -- print("dug a block")
       end
     end
     if turtle.forward() then
-      print("there is no block")
+      -- print("there is no block")
     end
   elseif movement == "up" or movement == "u" then
     if turtle.detectUp() then
       if turtle.digUp() then
-        print("dug a block")
+        -- print("dug a block")
       end
     end
     if turtle.up() then
-      print("there is no block")
+      -- print("there is no block")
     end
   elseif movement == "down" or movement == "d" then
     if turtle.detectDown() then
       if turtle.digDown() then
-        print("dug a block")
+        -- print("dug a block")
       end
     end
     if turtle.down() then
-      print("there is no block")
+      -- print("there is no block")
     end
   else
     print("Not a valid movement")
@@ -190,7 +190,7 @@ local function isAlternate(num)
 end
 
 -- assuming in the lowest rear block position
-local function mineVerticalSlice(length, tall)
+local function mineVerticalSliceAndResetPosition(length, tall)
   local currHeight = 1
   local currDepth = 1
   -- if the height that is being cleared is more than just one vertical layer
@@ -229,18 +229,25 @@ local function mineVerticalSlice(length, tall)
   tryRotate(Direction.RIGHT)
 end
  
+local function strafeRight()
+  tryRotate(Direction.RIGHT)
+  tryMove(Direction.FORWARD)
+  tryRotate(Direction.LEFT)
+end
+
 print("Excavating...")
 
 -- select fuel slot
 turtle.select(1)
 turtle.refuel(1)
 print("Turtle has fuel: " .. turtle.getFuelLevel() .. ". Will mine wide: " .. sizeWide .. ", forward: " .. sizeForward .. ", tall: " .. sizeUp)
-mineVerticalSlice(sizeForward, sizeUp)
 
--- start the turtle from the lower left of the cube that will be cleared (interior)
--- from 1 to sizeForward,
--- mine a column Y high, y+
--- move forward 1, mine a column Y high, y-
--- if current y is not 0, move to y=0
--- rotate right, move forward 1, rotate right
+-- main procedure
+for x = 1, sizeWide do
+  mineVerticalSliceAndResetPosition(sizeForward, sizeUp)
+  if (x < sizeWide) then
+    strafeRight()
+  end
+end
+
 print("Done!")
