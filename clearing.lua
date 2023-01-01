@@ -210,10 +210,23 @@ local function mineVerticalSlice(length, tall)
       end
     end
     -- no matter what, even if there is only one layer being mined, move forward (after the column is mined)
-    if tryMove(Direction.FORWARD) then
-      currDepth = currDepth + 1
+    if currDepth < length then
+      if tryMove(Direction.FORWARD) then
+        currDepth = currDepth + 1
+      end
     end
   end
+  -- reset position
+  tryRotate(Direction.RIGHT)
+  tryRotate(Direction.RIGHT)
+  for y = 1, currHeight - 1 do
+    tryMove(Direction.DOWN)
+  end
+  for z = 1, currDepth - 1 do
+    tryMove(Direction.FORWARD)
+  end
+  tryRotate(Direction.RIGHT)
+  tryRotate(Direction.RIGHT)
 end
  
 print("Excavating...")
