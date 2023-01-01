@@ -146,30 +146,27 @@ local function tryMove(movement)
       if turtle.dig() then
         print("dug a block")
       end
-    else
-      if turtle.forward() then
-        print("there is no block")
-      end
+    end
+    if turtle.forward() then
+      print("there is no block")
     end
   elseif movement == "up" or movement == "u" then
     if turtle.detectUp() then
       if turtle.digUp() then
         print("dug a block")
       end
-    else
-      if turtle.up() then
-        print("there is no block")
-      end
+    end
+    if turtle.up() then
+      print("there is no block")
     end
   elseif movement == "down" or movement == "d" then
     if turtle.detectDown() then
       if turtle.digDown() then
         print("dug a block")
       end
-    else
-      if turtle.down() then
-        print("there is no block")
-      end
+    end
+    if turtle.down() then
+      print("there is no block")
     end
   else
     print("Not a valid movement")
