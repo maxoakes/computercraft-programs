@@ -137,9 +137,9 @@ end
 
 -- attempt a movement based on an input. if there is a block in the way, it will mine, otherwise, it will move
 local function tryMove(movement)
-  if turtle.getFuelLevel() then
+  if turtle.getFuelLevel() <= 2 then
     print("Refueling")
-    turtle.refuel(2)
+    turtle.refuel(1)
   end
   if movement == "forward" or movement == "f" then
     if turtle.detect() then
