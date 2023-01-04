@@ -4,12 +4,19 @@ if not turtle then
 end
  
 -- constants
-local Direction = {
+local Movement = {
   RIGHT = "r",
   LEFT = "l",
   FORWARD = "f",
   UP = "u",
   DOWN = "d"
+}
+
+local Facing = {
+  FORWARD = "f",
+  BACKWARD = "b",
+  LEFT = "l",
+  RIGHT = "r"
 }
 
 local tArgs = { ... }
@@ -27,19 +34,28 @@ for key,value in ipairs(tArgs) do
   end
 end
 
+-- Params
 local sizeWide = tonumber(tArgs[1])
 local sizeForward = tonumber(tArgs[2])
 local sizeUp = tonumber(tArgs[3])
 
+-- Rotation, Position
+local currX = 0
+local currZ = 0
+local currY = 0
+local currDir = Facing.FORWARD
+local currXFacing = 0 -- 1 = facing right; 0 = facing back or forward; -1 = facing left
+local currZFacing = 1 -- 1 = facing forward; 0 = facing left or right; -1 = facing backwards
+
 local unloaded = 0
 local collected = 0
  
-local xPos, zPos, yPos = 0, 0, 0
-local xDir, zDir = 0, 1
- 
 local goTo -- Filled in further down
 local refuel -- Filled in further down
- 
+
+-- -- -- -- --
+-- Fueling, loading functions
+-- -- -- -- --
 local function unload(_bKeepOneFuelStack)
   print("Unloading items...")
   for n = 1, 16 do
@@ -62,7 +78,7 @@ local function unload(_bKeepOneFuelStack)
 end
  
 local function returnSupplies()
-  local x, y, z, xd, zd = xPos, yPos, zPos, xDir, zDir
+  local x, y, z, xd, zd = currX, currY, currZ, currXFacing, currZFacing
   print("Returning to origin...")
   goTo(0, 0, 0, 0, -1)
  
@@ -112,7 +128,7 @@ function refuel(amount)
     return true
   end
  
-  local needed = amount or xPos + zPos + yPos + 2
+  local needed = amount or currX + currZ + currY + 2
   if turtle.getFuelLevel() < needed then
     for n = 1, 16 do
       if turtle.getItemCount(n) > 0 then
@@ -134,6 +150,9 @@ function refuel(amount)
  
   return true
 end
+-- -- -- --
+-- Movement functions
+-- -- -- --
 
 -- attempt a movement based on an input. if there is a block in the way, it will mine, otherwise, it will move
 local function tryMove(movement)
@@ -148,7 +167,17 @@ local function tryMove(movement)
       end
     end
     if turtle.forward() then
-      -- print("there is no block")
+      if currDir == Facing.FORWARD then
+        currZ = currZ + 1
+      elseif currDir == Facing.RIGHT then
+        currX = currX + 1
+      elseif currDir == Facing.BACKWARD then
+        currZ = currZ - 1
+      elseif currDir == Facing.LEFT then
+        currX = currX - 1
+      else
+        return false
+      end
     end
   elseif movement == "up" or movement == "u" then
     if turtle.detectUp() then
@@ -157,7 +186,7 @@ local function tryMove(movement)
       end
     end
     if turtle.up() then
-      -- print("there is no block")
+      currY = currY + 1
     end
   elseif movement == "down" or movement == "d" then
     if turtle.detectDown() then
@@ -166,23 +195,51 @@ local function tryMove(movement)
       end
     end
     if turtle.down() then
-      -- print("there is no block")
+      currY = currY - 1
     end
   else
     print("Not a valid movement")
     return false
   end
+  print("Moved " .. movement .. " -> Now at (" .. currX .. "," .. currY .. "," .. currZ .. ")")
   return true
 end
 
 local function tryRotate(direction)
-  if direction == "right" or direction == "r" then
+  if direction == Movement.RIGHT then
     turtle.turnRight()
-  elseif direction == "left" or direction == "l" then
+    if currDir == Facing.FORWARD then
+      currDir = Facing.RIGHT
+    elseif currDir == Facing.RIGHT then
+      currDir = Facing.BACKWARD
+    elseif currDir == Facing.BACKWARD then
+      currDir = Facing.LEFT
+    elseif currDir == Facing.LEFT then
+      currDir = Facing.FORWARD
+    else
+      return false
+    end
+  elseif Movement.LEFT then
     turtle.turnLeft()
+    if currDir == Facing.FORWARD then
+      currDir = Facing.LEFT
+    elseif currDir == Facing.RIGHT then
+      currDir = Facing.FORWARD
+    elseif currDir == Facing.BACKWARD then
+      currDir = Facing.RIGHT
+    elseif currDir == Facing.LEFT then
+      currDir = Facing.BACKWARD
+    else
+      return false
+    end
   end
+  print("Rotated " .. direction .. " -> Now facing " .. currDir)
   return true
 end
+
+-- -- -- -- -- --
+-- Main functions
+-- -- -- -- -- --
 
 -- helper function to determine if a number (ideally a single coord position) will use some alternative action. returns boolean
 local function isAlternate(num)
@@ -190,7 +247,7 @@ local function isAlternate(num)
 end
 
 -- assuming in the lowest rear block position
-local function mineVerticalSliceAndResetPosition(length, tall)
+local function mineForwardVerticalSlice(length, tall)
   local currHeight = 1
   local currDepth = 1
   -- if the height that is being cleared is more than just one vertical layer
@@ -199,11 +256,11 @@ local function mineVerticalSliceAndResetPosition(length, tall)
       -- mine one column and move forward
       for y = 2, tall do
         if isAlternate(currDepth) then
-          if tryMove(Direction.DOWN) then
+          if tryMove(Movement.DOWN) then
             currHeight = currHeight - 1
           end
         else
-          if tryMove(Direction.UP) then
+          if tryMove(Movement.UP) then
             currHeight = currHeight + 1
           end
         end
@@ -211,28 +268,41 @@ local function mineVerticalSliceAndResetPosition(length, tall)
     end
     -- no matter what, even if there is only one layer being mined, move forward (after the column is mined)
     if currDepth < length then
-      if tryMove(Direction.FORWARD) then
+      if tryMove(Movement.FORWARD) then
         currDepth = currDepth + 1
       end
     end
   end
-  -- reset position
-  tryRotate(Direction.RIGHT)
-  tryRotate(Direction.RIGHT)
-  for y = 1, currHeight - 1 do
-    tryMove(Direction.DOWN)
-  end
-  for z = 1, currDepth - 1 do
-    tryMove(Direction.FORWARD)
-  end
-  tryRotate(Direction.RIGHT)
-  tryRotate(Direction.RIGHT)
 end
  
-local function strafeRight()
-  tryRotate(Direction.RIGHT)
-  tryMove(Direction.FORWARD)
-  tryRotate(Direction.LEFT)
+local function strafe(facing, distance)
+  if facing == Facing.RIGHT then
+    tryRotate(Movement.RIGHT)
+    for i = 1, distance do
+      tryMove(Movement.FORWARD)
+    end
+    tryRotate(Movement.LEFT)
+  elseif facing == Facing.LEFT then
+    tryRotate(Movement.LEFT)
+    for i = 1, distance do
+      tryMove(Movement.FORWARD)
+    end
+    tryRotate(Movement.RIGHT)
+  elseif facing == Facing.BACKWARD then
+    tryRotate(Movement.RIGHT)
+    tryRotate(Movement.RIGHT)
+    for i = 1, distance do
+      tryMove(Movement.FORWARD)
+    end
+    tryRotate(Movement.RIGHT)
+    tryRotate(Movement.RIGHT)
+  elseif facing == Facing.FORWARD then
+    for i = 1, distance do
+      tryMove(Movement.FORWARD)
+    end
+  else
+    return
+  end
 end
 
 print("Excavating...")
@@ -242,12 +312,32 @@ turtle.select(1)
 turtle.refuel(1)
 print("Turtle has fuel: " .. turtle.getFuelLevel() .. ". Will mine wide: " .. sizeWide .. ", forward: " .. sizeForward .. ", tall: " .. sizeUp)
 
--- main procedure
-for x = 1, sizeWide do
-  mineVerticalSliceAndResetPosition(sizeForward, sizeUp)
-  if (x < sizeWide) then
-    strafeRight()
+local function clearing()
+  -- inital rotate to mine frontmost slice
+  tryRotate(Movement.RIGHT)
+
+  for x = 1, sizeForward do
+    -- mine that slice
+    mineForwardVerticalSlice(sizeWide, sizeUp)
+
+    -- move the turtle to the lowest Y level of the clearing area
+    while currY > 0 do
+      tryMove(Movement.DOWN)
+    end
+
+    -- strafe to the next slice base
+    if isAlternate(currZ) then
+      tryRotate(Facing.LEFT)
+      tryMove(Movement.FORWARD)
+      tryRotate(Facing.LEFT)
+    else
+      tryRotate(Facing.RIGHT)
+      tryMove(Movement.FORWARD)
+      tryRotate(Facing.RIGHT)
+    end
   end
 end
 
+-- main procedure
+clearing()
 print("Done!")
