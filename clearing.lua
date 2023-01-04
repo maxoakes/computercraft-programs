@@ -20,9 +20,9 @@ local Facing = {
 }
 
 local tArgs = { ... }
-if #tArgs ~= 3 then
+if #tArgs ~= 3  or #tArgs ~= 4 then
   local programName = arg[0] or fs.getName(shell.getRunningProgram())
-  print("Usage: " .. programName .. " <right-length> <forward-length> <up-length> (verbose)")
+  print("Usage: " .. programName .. " <right-length> <forward-length> <up-length> <clearing|stairs>")
   return
 end
 
