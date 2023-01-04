@@ -22,7 +22,7 @@ local Facing = {
 local tArgs = { ... }
 if #tArgs ~= 3 then
   local programName = arg[0] or fs.getName(shell.getRunningProgram())
-  print("Usage: " .. programName .. " <right-length> <forward-length> <up-length>")
+  print("Usage: " .. programName .. " <right-length> <forward-length> <up-length> (verbose)")
   return
 end
 
@@ -35,9 +35,18 @@ for key,value in ipairs(tArgs) do
 end
 
 -- Params
+local isVerbose = false
 local sizeWide = tonumber(tArgs[1])
 local sizeForward = tonumber(tArgs[2])
 local sizeUp = tonumber(tArgs[3])
+local type = tostring(tArgs[4])
+if type == nil or type == "clearing" then
+  type = "clearing"
+elseif type == "stairs" or type == "stairs" then
+  type = "stairs"
+else
+  type = "clearing"
+end
 
 -- Rotation, Position
 local currX = 0
@@ -52,6 +61,19 @@ local collected = 0
  
 local goTo -- Filled in further down
 local refuel -- Filled in further down
+
+-- -- -- -- --
+-- Helper functions
+-- -- -- -- --
+local function verbosePrint(str)
+  if isVerbose then
+    print("Debug: " .. str)
+  end
+end
+
+local function isAlternate(num)
+  return math.fmod(num, 2) == 0
+end
 
 -- -- -- -- --
 -- Fueling, loading functions
@@ -163,7 +185,7 @@ local function tryMove(movement)
   if movement == "forward" or movement == "f" then
     if turtle.detect() then
       if turtle.dig() then
-        -- print("dug a block")
+        -- verbosePrint("dug a block")
       end
     end
     if turtle.forward() then
@@ -182,7 +204,7 @@ local function tryMove(movement)
   elseif movement == "up" or movement == "u" then
     if turtle.detectUp() then
       if turtle.digUp() then
-        -- print("dug a block")
+        -- verbosePrint("dug a block")
       end
     end
     if turtle.up() then
@@ -191,7 +213,7 @@ local function tryMove(movement)
   elseif movement == "down" or movement == "d" then
     if turtle.detectDown() then
       if turtle.digDown() then
-        -- print("dug a block")
+        -- verbosePrint("dug a block")
       end
     end
     if turtle.down() then
@@ -201,7 +223,7 @@ local function tryMove(movement)
     print("Not a valid movement")
     return false
   end
-  print("Moved " .. movement .. " -> Now at (" .. currX .. "," .. currY .. "," .. currZ .. ")")
+  verbosePrint("Moved " .. movement .. " -> Now at (" .. currX .. "," .. currY .. "," .. currZ .. ")")
   return true
 end
 
@@ -233,18 +255,13 @@ local function tryRotate(direction)
       return false
     end
   end
-  print("Rotated " .. direction .. " -> Now facing " .. currDir)
+  verbosePrint("Rotated " .. direction .. " -> Now facing " .. currDir)
   return true
 end
 
 -- -- -- -- -- --
--- Main functions
+-- Movement Helper functions
 -- -- -- -- -- --
-
--- helper function to determine if a number (ideally a single coord position) will use some alternative action. returns boolean
-local function isAlternate(num)
-  return math.fmod(num, 2) == 0
-end
 
 -- assuming in the lowest rear block position
 local function mineForwardVerticalSlice(length, tall)
@@ -305,12 +322,9 @@ local function strafe(facing, distance)
   end
 end
 
-print("Excavating...")
-
--- select fuel slot
-turtle.select(1)
-turtle.refuel(1)
-print("Turtle has fuel: " .. turtle.getFuelLevel() .. ". Will mine wide: " .. sizeWide .. ", forward: " .. sizeForward .. ", tall: " .. sizeUp)
+-- -- -- --
+-- Main functions
+-- -- -- -- 
 
 local function clearing()
   -- inital rotate to mine frontmost slice
@@ -338,6 +352,43 @@ local function clearing()
   end
 end
 
+local function clearing()
+  -- inital rotate to mine frontmost slice
+  tryRotate(Movement.RIGHT)
+
+  for x = 1, sizeForward do
+    -- mine that slice
+    mineForwardVerticalSlice(sizeWide, sizeUp)
+
+    -- move the turtle to the lowest Y level of the clearing area
+    while currY > -1 do
+      tryMove(Movement.DOWN)
+    end
+
+    -- strafe to the next slice base
+    if isAlternate(currZ) then
+      tryRotate(Facing.LEFT)
+      tryMove(Movement.FORWARD)
+      tryRotate(Facing.LEFT)
+    else
+      tryRotate(Facing.RIGHT)
+      tryMove(Movement.FORWARD)
+      tryRotate(Facing.RIGHT)
+    end
+  end
+end
+
 -- main procedure
-clearing()
+print("Excavating...")
+
+-- select fuel slot
+turtle.select(1)
+turtle.refuel(1)
+print("Turtle has fuel: " .. turtle.getFuelLevel() .. ". Will do: " .. type .. " with dimensions (wide: ".. sizeWide .. ", forward: " .. sizeForward .. ", tall: " .. sizeUp)
+
+if type == "clearing" then
+  clearing()
+elseif type == "stairs" then
+  stairs()
+end
 print("Done!")
