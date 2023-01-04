@@ -22,7 +22,7 @@ local Facing = {
 local tArgs = { ... }
 if #tArgs ~= 3 or #tArgs ~= 4 then
   local programName = arg[0] or fs.getName(shell.getRunningProgram())
-  print("Usage: " .. programName .. " <right-length> <forward-length> <up-length> <clearing|stairs>")
+  print("Usage: " .. programName .. " <right-length> <forward-length> <up-length> (clearing|stairs)")
   return
 end
 
@@ -39,7 +39,7 @@ local isVerbose = false
 local sizeWide = tonumber(tArgs[1])
 local sizeForward = tonumber(tArgs[2])
 local sizeUp = tonumber(tArgs[3])
-local type = tostring(tArgs[4])
+local type = tArgs[4]
 if type == nil or type == "clearing" then
   type = "clearing"
 elseif type == "stairs" or type == "stairs" then
