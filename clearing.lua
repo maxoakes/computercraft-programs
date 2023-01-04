@@ -28,9 +28,11 @@ end
 
 for key,value in ipairs(tArgs) do
   print("Reading " .. key .. ": " .. value)
-  if tonumber(value) < 1 then
-    print("Dimensions must be greater than 0: trouble input = " .. value)
-    return
+  if key <= 3 then
+    if tonumber(value) < 1 then
+      print("Dimensions must be greater than 0: trouble input = " .. value)
+      return
+    end
   end
 end
 
