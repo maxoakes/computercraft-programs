@@ -363,7 +363,7 @@ local function clearing()
     mineForwardVerticalSlice(sizeWide, sizeUp)
 
     -- move the turtle to the lowest Y level of the clearing area
-    while currY > -1 do
+    while currY > 0 do
       tryMove(Movement.DOWN)
     end
 
