@@ -185,7 +185,7 @@ local function tryMove(movement)
     turtle.refuel(1)
   end
   if movement == "forward" or movement == "f" then
-    if turtle.detect() then
+    while turtle.detect() do
       if turtle.dig() then
         -- verbosePrint("dug a block")
       end
@@ -204,7 +204,7 @@ local function tryMove(movement)
       end
     end
   elseif movement == "up" or movement == "u" then
-    if turtle.detectUp() then
+    while turtle.detectUp() do
       if turtle.digUp() then
         -- verbosePrint("dug a block")
       end
@@ -213,7 +213,7 @@ local function tryMove(movement)
       currY = currY + 1
     end
   elseif movement == "down" or movement == "d" then
-    if turtle.detectDown() then
+    while turtle.detectDown() do
       if turtle.digDown() then
         -- verbosePrint("dug a block")
       end
@@ -354,7 +354,7 @@ local function clearing()
   end
 end
 
-local function clearing()
+local function stairs()
   -- inital rotate to mine frontmost slice
   tryRotate(Movement.RIGHT)
 
@@ -372,10 +372,12 @@ local function clearing()
       tryRotate(Facing.LEFT)
       tryMove(Movement.FORWARD)
       tryRotate(Facing.LEFT)
+      tryMove(Movement.DOWN)
     else
       tryRotate(Facing.RIGHT)
       tryMove(Movement.FORWARD)
       tryRotate(Facing.RIGHT)
+      tryMove(Movement.DOWN)
     end
   end
 end
