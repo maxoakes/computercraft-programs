@@ -324,6 +324,62 @@ local function strafe(facing, distance)
   end
 end
 
+-- set direction regardless of what it is at currently
+local function setDir(facing)
+  while currDir ~= facing do
+    tryRotate(Facing.RIGHT)
+  end
+end
+
+-- Stair climb
+local function traverseTo(x, z, y, d)
+  local destructive = false
+  if d then
+    destructive = true
+  end
+
+  if not destructive then
+    while currX ~= x and currZ ~= z and currY ~= y do
+      if currX ~= x then
+        if (currX - x) > 0 then 
+          setDir(Facing.LEFT)
+          while not turtle.detect() and currX ~= x do
+            tryMove(Movement.FORWARD)
+          end
+        else
+          setDir(Facing.RIGHT)
+          while not turtle.detect() and currX ~= x do
+            tryMove(Movement.FORWARD)
+          end
+        end
+        if currZ ~= z then
+          if (currZ - z) > 0 then 
+            setDir(Facing.BACKWARD)
+            while not turtle.detect() and currZ ~= z do
+              tryMove(Movement.FORWARD)
+            end
+          else
+            setDir(Facing.FORWARD)
+            while not turtle.detect() and currZ ~= z do
+              tryMove(Movement.FORWARD)
+            end
+          end
+        end
+        if currY ~= y then
+          if (currY - y) > 0 then 
+            while not turtle.detectUp() and currY ~= y do
+              tryMove(Movement.UP)
+            end
+          else
+            while not turtle.detectDown() and currY ~= y do
+              tryMove(Movement.DOWN)
+            end
+          end
+        end
+      end
+    end
+  end
+end
 -- -- -- --
 -- Main functions
 -- -- -- -- 
@@ -380,6 +436,7 @@ local function stairs()
       tryMove(Movement.DOWN)
     end
   end
+  traverseTo(0, 0, 0, false)
 end
 
 -- main procedure
