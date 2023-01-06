@@ -333,13 +333,14 @@ end
 
 -- Stair climb
 local function traverseTo(x, z, y, d)
+  print("Starting traversal to (" .. x .. ", " .. y .. ", " .. z .. ")")
   local destructive = false
   if d then
     destructive = true
   end
 
   if not destructive then
-    while currX ~= x and currZ ~= z and currY ~= y do
+    while currX ~= x or currZ ~= z or currY ~= y do
       if currX ~= x then
         if (currX - x) > 0 then 
           setDir(Facing.LEFT)
