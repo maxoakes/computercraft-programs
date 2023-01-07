@@ -378,6 +378,7 @@ local function traverseTo(x, z, y, d)
           end
         end
       end
+      sleep(0.5)
     end
   end
 end
