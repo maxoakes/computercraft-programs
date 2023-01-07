@@ -327,7 +327,7 @@ end
 -- set direction regardless of what it is at currently
 local function setDir(facing)
   while currDir ~= facing do
-    tryRotate(Facing.RIGHT)
+    tryRotate(Movement.RIGHT)
   end
 end
 
